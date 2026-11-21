@@ -129,3 +129,93 @@ for(const [resultados,esperado] of DECISOES) test(`mão ${JSON.stringify(resulta
 for(const mao of [0,1]) test(`três empates favorecem equipe de mão ${mao}`,()=>assert.equal(vencedorMao([null,null,null],mao),mao));
 for(const mao of [-1,2,'0',null]) test(`equipe de mão inválida ${String(mao)} é rejeitada pelo avaliador`,()=>assert.throws(()=>vencedorMao([null,null,null],mao),Error));
 for(const resultados of [[2],[-1],['0'],[0,1,0,1],null]) test(`resultados inválidos de mão ${JSON.stringify(resultados)} são rejeitados`,()=>assert.throws(()=>vencedorMao(resultados),Error));
+test('partida começa zerada e ainda sem mão ativa',()=>{const j=new Truco();assert.deepEqual(j.pontos,[0,0]);assert.equal(j.vencedor,null);assert.equal(j.ativa,false);assert.equal(j.mao,0);});
+test('sem iniciar mão, jogar/pedir/responder/correr são erros sem efeito',()=>{const j=new Truco();for(const acao of [()=>j.jogar(0,0),()=>j.pedir(0),()=>j.responder(1,true),()=>j.correr(1)])rejeita(j,acao);});
+for(const mao of [0,1,2,3]) test(`distribuição de 3 cartas por jogador, vira na 13ª posição, abertura por ${mao}`,()=>{
+  const cartas=embaralhar(11),antes=structuredClone(cartas),j=novo({cartas,mao});
+  assert.deepEqual(j.maos,[cartas.slice(0,3),cartas.slice(3,6),cartas.slice(6,9),cartas.slice(9,12)]);assert.deepEqual(j.vira,cartas[12]);assert.equal(j.turno,mao);assert.equal(j.mao,mao);assert.equal(j.valor,1);assert.equal(j.pendente,null);assert.deepEqual(j.mesa,[]);assert.deepEqual(j.vazas,[]);assert.equal(j.ativa,true);assert.deepEqual(cartas,antes);
+  cartas[0].valor='X';assert.notEqual(j.maos[0][0].valor,'X');j.vira.valor='X';assert.notEqual(cartas[12].valor,'X');
+});
+test('treze cartas são suficientes; sobras não participam da mão',()=>{const j=novo({cartas:DECK.slice(0,13)});assert.equal(j.maos.flat().length,12);});
+for(const cartas of [[],DECK.slice(0,12),[DECK[0],...DECK.slice(0,12)],[c('8'),...DECK.slice(1,13)]]) test(`distribuição inválida de ${cartas.length} posições é rejeitada sem ativar a mão`,()=>{
+  const j=new Truco();rejeita(j,()=>j.iniciar({cartas}));assert.equal(j.ativa,false);
+});
+for(const mao of [-1,4,0.5,'0',null]) test(`jogador de mão inválido ${String(mao)}`,()=>{const j=new Truco();rejeita(j,()=>j.iniciar({mao}));});
+test('não se pode redistribuir enquanto uma mão está ativa',()=>{const j=novo();rejeita(j,()=>j.iniciar());});
+test('jogada remove uma carta, registra jogador e carta e avança um turno',()=>{
+  const j=novo(),esperada=structuredClone(j.maos[0][1]);j.jogar(0,1);assert.equal(j.maos[0].length,2);assert.deepEqual(j.mesa,[{jogador:0,carta:esperada}]);assert.equal(j.turno,1);assert.equal(j.ativa,true);assert.deepEqual(j.pontos,[0,0]);
+});
+for(const jogador of [-1,1,4,'0',null,0.5]) test(`jogada do jogador inválido/fora da vez ${String(jogador)} não muda o estado`,()=>{const j=novo();rejeita(j,()=>j.jogar(jogador,0));});
+for(const indice of [-1,3,0.5,'0',null,NaN]) test(`índice de carta ${String(indice)} é inválido`,()=>{const j=novo();rejeita(j,()=>j.jogar(0,indice));});
+test('a ordem dos turnos dá a volta de 3 para 0',()=>{const j=novo({mao:3});j.jogar(3,0);assert.equal(j.turno,0);j.jogar(0,0);assert.equal(j.turno,1);});
+test('quem ganha uma vaza abre a seguinte; mesa é limpa e vaza registra a equipe',()=>{
+  const maos=[[c('4'),c('6'),c('Q')],[c('3'),c('7'),c('J')],[c('5'),c('K'),c('A')],[c('2'),c('4','paus'),c('5','paus')]],j=novo({cartas:cartasOrdenadas(maos,c('Q','copas'))});
+  for(const p of [0,1,2,3])j.jogar(p,0);assert.deepEqual(j.vazas,[1]);assert.deepEqual(j.mesa,[]);assert.equal(j.turno,1);assert.equal(j.ativa,true);
+});
+test('vaza empatada mantém seu líder, inclusive se ele não é jogador 0',()=>{
+  const maos=[[c('3'),c('6'),c('Q')],[c('4'),c('7'),c('J')],[c('5'),c('K'),c('A')],[c('3','paus'),c('4','paus'),c('5','paus')]],j=novo({mao:3,cartas:cartasOrdenadas(maos,c('Q','copas'))});
+  for(const p of [3,0,1,2])j.jogar(p,0);assert.deepEqual(j.vazas,[null]);assert.equal(j.turno,3);
+});
+test('pedido de truco vale 3, não consome carta/turno e bloqueia jogo até resposta',()=>{
+  const j=novo(),maos=structuredClone(j.maos);assert.equal(j.pedir(0),3);assert.deepEqual(j.pendente,{equipe:0,valor:3});assert.equal(j.valor,1);assert.equal(j.turno,0);assert.deepEqual(j.maos,maos);rejeita(j,()=>j.jogar(0,0));rejeita(j,()=>j.pedir(0));rejeita(j,()=>j.correr(1));
+});
+test('aceitar pedido atualiza valor, não pontos; mantém vez de quem pediu',()=>{
+  const j=novo();j.pedir(0);j.responder(3,true);assert.equal(j.valor,3);assert.equal(j.pendente,null);assert.equal(j.ultimaSolicitante,0);assert.equal(j.turno,0);assert.deepEqual(j.pontos,[0,0]);assert.equal(j.ativa,true);rejeita(j,()=>j.pedir(0));
+});
+test('pedido só pode ser feito por quem tem a vez, inclusive parceiro não pode pedir fora da ordem',()=>{const j=novo();for(const p of [1,2,3,-1,4])rejeita(j,()=>j.pedir(p));});
+test('só adversário pode responder; resposta precisa ser boolean e pedido precisa existir',()=>{
+  const j=novo();rejeita(j,()=>j.responder(1,true));j.pedir(0);for(const p of [0,2,-1,4,'1'])rejeita(j,()=>j.responder(p,true));for(const v of [0,1,'sim',null,undefined])rejeita(j,()=>j.responder(1,v));
+});
+for(const recusarNo of [3,6,9,12]) test(`recusar ${recusarNo} concede valor anterior à solicitante, não o pedido`,()=>{
+  const j=novo(),niveis=[1,3,6,9,12];
+  for(let i=1;i<=niveis.indexOf(recusarNo);i++) {
+    const p=j.turno,equipe=p%2,anterior=j.valor;j.pedir(p);
+    if(niveis[i]===recusarNo){j.responder(1-equipe,false);assert.equal(j.ativa,false);assert.equal(j.pontos[equipe],anterior);assert.equal(j.pontos[1-equipe],0);assert.equal(j.pendente,null);}
+    else {j.responder(1-equipe,true);j.jogar(p,0);}
+  }
+});
+test('escalada aceita só 3→6→9→12 alternando equipes, sem permitir acima de 12',()=>{
+  const j=novo();for(const valor of [3,6,9,12]){const p=j.turno;assert.equal(j.pedir(p),valor);j.responder(1-p%2,true);assert.equal(j.valor,valor);j.jogar(p,0);}rejeita(j,()=>j.pedir(j.turno));
+});
+for(const jogador of [0,1,2,3]) test(`correr pelo jogador ${jogador} concede valor atual à outra equipe`,()=>{
+  const j=novo();j.correr(jogador);assert.equal(j.ativa,false);assert.equal(j.pontos[1-jogador%2],1);assert.equal(j.pontos[jogador%2],0);assert.equal(j.mao,1);
+});
+for(const jogador of [-1,4,'0',null,NaN]) test(`desistência de jogador inválido ${String(jogador)} é rejeitada`,()=>{const j=novo();rejeita(j,()=>j.correr(jogador));});
+test('correr após truco aceito concede três, não um',()=>{const j=novo();j.pedir(0);j.responder(1,true);j.correr(2);assert.deepEqual(j.pontos,[0,3]);});
+for(const pontos of [[11,0],[0,11],[11,8],[8,11]]) test(`mão de onze ${pontos.join('x')} vale três e bloqueia aumento`,()=>{
+  const j=new Truco();j.pontos=[...pontos];j.iniciar();assert.equal(j.especial,true);assert.equal(j.valor,3);rejeita(j,()=>j.pedir(j.turno));
+});
+test('ambas equipes com onze: mão vale um, sem aumento',()=>{const j=new Truco();j.pontos=[11,11];j.iniciar();assert.equal(j.valor,1);assert.equal(j.especial,true);rejeita(j,()=>j.pedir(0));});
+test('dez não é onze: mão comum continua valendo um e aceita truco',()=>{const j=new Truco();j.pontos=[10,10];j.iniciar();assert.equal(j.valor,1);assert.equal(j.especial,false);assert.equal(j.pedir(j.turno),3);});
+for(const equipe of [0,1]) test(`pontuação pode ultrapassar 12 e encerra para equipe ${equipe}`,()=>{
+  const j=new Truco();j.pontos=equipe===0?[11,0]:[0,11];j.iniciar();j.correr(1-equipe);assert.equal(j.pontos[equipe],14);assert.equal(j.vencedor,equipe);assert.equal(j.ativa,false);rejeita(j,()=>j.iniciar());
+});
+test('terminar mão ativa limpa pedido e próxima mão reinicia valor, mesa e vazas',()=>{
+  const j=novo();j.pedir(0);j.responder(1,true);j.correr(0);const placar=[...j.pontos];j.iniciar();assert.equal(j.mao,1);assert.equal(j.turno,1);assert.equal(j.valor,1);assert.equal(j.pendente,null);assert.equal(j.ultimaSolicitante,null);assert.deepEqual(j.mesa,[]);assert.deepEqual(j.vazas,[]);assert.deepEqual(j.pontos,placar);
+});
+test('jogador de mão alterna pelos quatro lugares e volta a zero',()=>{const j=new Truco();for(let i=0;i<4;i++){j.iniciar();assert.equal(j.mao,i);j.correr(i);}assert.equal(j.mao,0);});
+test('mão encerrada não aceita cartas, pedidos, respostas ou novas desistências',()=>{
+  const j=novo();j.correr(1);for(const acao of [()=>j.jogar(0,0),()=>j.pedir(0),()=>j.responder(1,true),()=>j.correr(1)])rejeita(j,acao);
+});
+for(const seed of [1,7,42,2026]) test(`mão completa semente ${seed}: usa só cartas distribuídas, no máximo três vazas e pontua uma equipe`,()=>{
+  const mao=seed%4,j=novo({cartas:embaralhar(seed),mao}),distribuidas=new Set(j.maos.flat().map(key));let jogadas=0;const utilizadas=new Set(),vazasEsperadas=[];
+  while(j.ativa&&jogadas++<12){
+    const p=j.turno,carta=j.maos[p][0],mesa=[...j.mesa,{jogador:p,carta}],lider=mesa[0].jogador;
+    assert.ok(distribuidas.has(key(carta)));assert.equal(utilizadas.has(key(carta)),false);utilizadas.add(key(carta));j.jogar(p,0);
+    assert.equal(j.maos.flat().length,12-utilizadas.size);assert.equal(new Set(j.maos.flat().map(key)).size,j.maos.flat().length);
+    if(mesa.length===4){
+      const maior=Math.max(...mesa.map(v=>esperadoForca(v.carta,j.vira))),tops=mesa.filter(v=>esperadoForca(v.carta,j.vira)===maior);
+      const vencedor=new Set(tops.map(v=>v.jogador%2)).size===1?tops[0].jogador:null;
+      vazasEsperadas.push(vencedor===null?null:vencedor%2);assert.deepEqual(j.vazas,vazasEsperadas);
+      const decisao=DECISOES.find(([entrada])=>JSON.stringify(entrada)===JSON.stringify(vazasEsperadas));
+      const equipe=vazasEsperadas.length===3&&vazasEsperadas.every(v=>v===null)?mao%2:decisao?.[1];
+      if(equipe===undefined){assert.equal(j.ativa,true);assert.equal(j.turno,vencedor===null?lider:vencedor);}
+      else{assert.equal(j.ativa,false);assert.equal(j.pontos[equipe],1);assert.equal(j.pontos[1-equipe],0);}
+    }
+  }
+  assert.equal(j.ativa,false);assert.ok(j.vazas.length>=2&&j.vazas.length<=3);assert.ok(utilizadas.size===8||utilizadas.size===12);assert.equal(j.pontos.reduce((a,b)=>a+b,0),1);assert.equal(j.vencedor,null);
+});
+test('partida inteira fecha 12 com quatro mãos de três, sem empate nem reset de pontuação',()=>{
+  const j=new Truco();let maos=0;while(j.vencedor===null&&maos++<4){j.iniciar();const equipe=j.turno%2;j.pedir(j.turno);j.responder(1-equipe,true);j.correr(1);assert.equal(j.pontos[0],3*maos);assert.equal(j.pontos[1],0);}assert.equal(j.vencedor,0);assert.equal(j.pontos[0],12);assert.equal(j.ativa,false);
+});
+test('duas partidas não compartilham pontos, cartas ou turnos',()=>{const a=novo(),b=novo();a.correr(0);assert.deepEqual(b.pontos,[0,0]);assert.equal(b.ativa,true);assert.equal(b.maos.flat().length,12);});
