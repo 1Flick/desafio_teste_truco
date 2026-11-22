@@ -1,0 +1,72 @@
+{
+  "tests/apostas.spec.js": {
+    "assinatura": {
+      "imports": "679f449d03f2f682eb4fc601c2dfd5d1ef9b7362925dc7e406958dcff9eb1b53",
+      "declaracoes": "5ec9f6ef4f891dea95deda540ae5a6a89eaadb192bef62e959f055958995b9e7",
+      "execucoes": "dee3d5758cc6476d4e7c90876a7dd6279eb11471c14d68dd5ab659c1820c97ef"
+    },
+    "fixture": "tests/cenarios/apostas.js",
+    "assercoesExtraidas": 30,
+    "preparacoesExtraidas": 7
+  },
+  "tests/dicas.spec.js": {
+    "assinatura": {
+      "imports": "30748e7c993ad308a06867a4343026209f26e5c5baf3392066fa2366de2617cf",
+      "declaracoes": "f869887d718ab954ca4e6e4a2fd9abe260372c61e7f484bb3df4fd0708653177",
+      "execucoes": "d22058296ac91f872210bd9df097a4a95e9c97a6e76701cc4b45b0bc781b568e"
+    },
+    "fixture": "tests/cenarios/dicas.js",
+    "assercoesExtraidas": 1,
+    "preparacoesExtraidas": 1
+  },
+  "tests/distribuicao.spec.js": {
+    "assinatura": {
+      "imports": "459f410515395316f8f48e1d4c67797a120d9f187a20b2276b921e7fd8bb3309",
+      "declaracoes": "ac3f37f892759d48f37957f6dddf4271911a022cfdf35b5f9d29c4455dee06a7",
+      "execucoes": "cc4de83600f597c359f30b0bb61cd197cc6bdde8b272c3b04fe76a15705a2412"
+    },
+    "fixture": "tests/cenarios/distribuicao.js",
+    "assercoesExtraidas": 9,
+    "preparacoesExtraidas": 1
+  },
+  "tests/manilha.spec.js": {
+    "assinatura": {
+      "imports": "3fb5b02c1c378aa8ebfa60429aa3c26477d9bc343aafb094f8eee6a38499fe10",
+      "declaracoes": "76b2f6b46e5b0e43e15326bfb3bd6ed02c52e65b54d5631d795ffabd89df7618",
+      "execucoes": "6090821a2ae986bad1e7dfea3de2abb15fc3219a42a67921c1c8269703c0ef93"
+    },
+    "fixture": "tests/cenarios/manilha.js",
+    "assercoesExtraidas": 8,
+    "preparacoesExtraidas": 1
+  },
+  "tests/mao-de-onze.spec.js": {
+    "assinatura": {
+      "imports": "679f449d03f2f682eb4fc601c2dfd5d1ef9b7362925dc7e406958dcff9eb1b53",
+      "declaracoes": "c51dbdf1fda9364b6105f3043d9b5ff10f1a76dcca16e27cd11617a22f13551c",
+      "execucoes": "6dab8db4737e9437dd3b500755e0bc55532dda2d0857323a74c3f45f983c88f1"
+    },
+    "fixture": "tests/cenarios/mao-de-onze.js",
+    "assercoesExtraidas": 22,
+    "preparacoesExtraidas": 1
+  },
+  "tests/placar.spec.js": {
+    "assinatura": {
+      "imports": "9857bb10f2d86b45ca7b84814441fa67db201f5469d5a620ebbad98cdcd61ead",
+      "declaracoes": "5383dbdd2f22660a322d23a366488e1a2ed9464ce44f0f72972ab852eaaa121e",
+      "execucoes": "d824fba056ea998532f5e72355dbd7ef2ceeb5515a7fc6e577859e6a755d2dc1"
+    },
+    "fixture": "tests/cenarios/placar.js",
+    "assercoesExtraidas": 12,
+    "preparacoesExtraidas": 3
+  },
+  "tests/vaza.spec.js": {
+    "assinatura": {
+      "imports": "679f449d03f2f682eb4fc601c2dfd5d1ef9b7362925dc7e406958dcff9eb1b53",
+      "declaracoes": "0353dcefff8b8c3ab697f3d91332004912214065b7100b494b8dddc2c4c9b8ae",
+      "execucoes": "d7f40ad940cdfc2825bdf439af9629c5db0bb80f302f291690af38f0d4d16e4b"
+    },
+    "fixture": "tests/cenarios/vaza.js",
+    "assercoesExtraidas": 35,
+    "preparacoesExtraidas": 1
+  }
+}

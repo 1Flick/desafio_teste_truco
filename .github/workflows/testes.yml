@@ -10,5 +10,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: npm run verificar:equivalencia
       - run: npm run test:infra
       - run: npm run verificar:completo

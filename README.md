@@ -98,7 +98,15 @@ PLANEJAMENTO.md           regras, contrato, tarefas e casos de teste
 - `npm run test:infra` verifica a infraestrutura separadamente dos casos RED do jogo.
 - `.github/workflows/testes.yml` executa infraestrutura e verificação completa no GitHub Actions.
 
-Os arquivos `tests/*.spec.js`, `index.html`, `js/main.js` e `PLANEJAMENTO.md` da base não foram alterados.
+Os arquivos `index.html`, `js/main.js` e `PLANEJAMENTO.md` da base permanecem intactos. Os casos `tests/*.spec.js` foram refatorados, mantendo os cenários e o contrato das verificações.
 O arquivo de testes que já existia na raiz deste repositório continua preservado, fora do `testMatch` do Jest.
 Ele usa outro contrato (API Node, sem interface) e pode ser executado separadamente com `node --test <arquivo>.test.js` quando houver sua implementação.
 Os jogos continuam não implementados: `npm test` falha de propósito na fase RED; o comando de aceitação é `npm run verificar:completo`.
+
+## Refatoração dos próprios casos de teste
+
+- Cada arquivo agora agrupa seus casos por domínio com `describe`, preservando os títulos e IDs TC.
+- Dados determinísticos e rotinas de cenário ficam em `tests/cenarios/`, sem alterar cartas, puzzles, minas, peças ou frotas.
+- As verificações repetidas usam `conferir` em `tests/support/verificacoes.js`, com os mesmos matchers e negações do Jest.
+- Onde havia abertura seguida de Nova partida, `iniciarPartida` reaproveita a mesma sequência.
+- `npm run verificar:equivalencia` expande essas abstrações e compara hashes das árvores sintáticas dos casos, parâmetros, ações, asserções e hooks com a versão anterior à refatoração. Isso complementa, mas não substitui, a execução em uma implementação futura dos jogos.

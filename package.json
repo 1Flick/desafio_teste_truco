@@ -8,7 +8,8 @@
     "test": "jest",
     "verificar": "node scripts/verificar-testes.mjs",
     "verificar:completo": "node scripts/verificar-testes.mjs --completo",
-    "test:infra": "node --test scripts/tests/relatorio.test.mjs && jest --runInBand --testMatch \"<rootDir>/infrastructure/**/*.test.js\""
+    "test:infra": "node --test scripts/tests/relatorio.test.mjs && jest --runInBand --testMatch \"<rootDir>/infrastructure/**/*.test.js\"",
+    "verificar:equivalencia": "node scripts/verificar-equivalencia.cjs"
   },
   "engines": {
     "node": ">=18"
